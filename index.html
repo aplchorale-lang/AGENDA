@@ -1,0 +1,2786 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>APL — Antsam-Pideran'ny Lanitra</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+  <style>
+    /* ============================================================
+       VARIABLES & RESET
+    ============================================================ */
+    :root {
+      --or:        #C9A84C;
+      --or-clair:  #E8C96A;
+      --or-fonce:  #8B6914;
+      --argent:    #B0B8C1;
+      --argent-f:  #7A8490;
+      --fond:      #F5F3EE;
+      --fond2:     #EDEAE3;
+      --blanc:     #FFFFFF;
+      --texte:     #2C2A25;
+      --texte-2:   #5A5650;
+      --ombre:     rgba(44,42,37,.12);
+      --rouge:     #C0392B;
+      --vert:      #27AE60;
+      --bleu:      #2980B9;
+      --violet:    #8E44AD;
+      --orange:    #E67E22;
+
+      /* Types d'événements */
+      --messe:     #7A8490;
+      --concert-i: #C9A84C;
+      --famille:   #27AE60;
+      --liturgie:  #8E44AD;
+      --concert-p: #2980B9;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lato', sans-serif;
+      background: var(--fond);
+      color: var(--texte);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ============================================================
+       ÉCRAN DE CONNEXION
+    ============================================================ */
+    #ecran-connexion {
+      position: fixed; inset: 0;
+      background: linear-gradient(145deg, #1a1810 0%, #2d2a1f 50%, #1a1810 100%);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999;
+      transition: opacity .6s ease;
+    }
+
+    #ecran-connexion.masque {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .connexion-boite {
+      text-align: center;
+      padding: 3rem 2.5rem;
+      max-width: 420px;
+      width: 90%;
+      position: relative;
+    }
+
+    /* Cercle décoratif autour du logo */
+    .connexion-boite::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 1px solid rgba(201,168,76,.2);
+      border-radius: 50%;
+      width: 340px; height: 340px;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .logo-connexion {
+      width: 110px; height: 110px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--or);
+      box-shadow: 0 0 30px rgba(201,168,76,.35);
+      margin-bottom: 1.5rem;
+    }
+
+    .connexion-titre {
+      font-family: 'Cinzel', serif;
+      font-size: 1.05rem;
+      color: var(--or);
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      margin-bottom: .4rem;
+    }
+
+    .connexion-sous-titre {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      color: var(--argent);
+      font-size: .9rem;
+      margin-bottom: 2rem;
+      opacity: .8;
+    }
+
+    .connexion-verset {
+      font-size: .75rem;
+      color: rgba(176,184,193,.5);
+      margin-bottom: 2rem;
+      letter-spacing: .05em;
+    }
+
+    .champ-mdp {
+      width: 100%;
+      padding: .8rem 1.2rem;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(201,168,76,.3);
+      border-radius: 4px;
+      color: var(--blanc);
+      font-family: 'Lato', sans-serif;
+      font-size: 1rem;
+      text-align: center;
+      letter-spacing: .15em;
+      outline: none;
+      transition: border-color .3s, background .3s;
+      margin-bottom: 1rem;
+    }
+
+    .champ-mdp:focus {
+      border-color: var(--or);
+      background: rgba(255,255,255,.1);
+    }
+
+    .champ-mdp::placeholder { color: rgba(176,184,193,.4); letter-spacing: .1em; }
+
+    .btn-connexion {
+      width: 100%;
+      padding: .85rem;
+      background: linear-gradient(135deg, var(--or-fonce), var(--or));
+      border: none;
+      border-radius: 4px;
+      color: #1a1810;
+      font-family: 'Cinzel', serif;
+      font-size: .85rem;
+      letter-spacing: .15em;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .2s, box-shadow .2s;
+    }
+
+    .btn-connexion:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(201,168,76,.4);
+    }
+
+    .erreur-mdp {
+      color: #e74c3c;
+      font-size: .8rem;
+      margin-top: .5rem;
+      height: 1.2rem;
+      transition: opacity .3s;
+    }
+
+    /* ============================================================
+       APP PRINCIPALE
+    ============================================================ */
+    #app { display: none; flex-direction: column; min-height: 100vh; }
+    #app.visible { display: flex; }
+
+    /* ---- EN-TÊTE ---- */
+    header {
+      background: linear-gradient(135deg, #1e1c15 0%, #2d2a1f 100%);
+      padding: .9rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+      border-bottom: 2px solid var(--or-fonce);
+      box-shadow: 0 2px 20px rgba(0,0,0,.3);
+    }
+
+    .header-gauche {
+      display: flex; align-items: center; gap: 1rem;
+    }
+
+    .logo-header {
+      width: 46px; height: 46px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--or);
+    }
+
+    .header-titre-bloc h1 {
+      font-family: 'Cinzel', serif;
+      color: var(--or);
+      font-size: 1rem;
+      letter-spacing: .12em;
+    }
+
+    .header-titre-bloc p {
+      font-size: .7rem;
+      color: var(--argent-f);
+      font-style: italic;
+    }
+
+    .header-droite {
+      display: flex; align-items: center; gap: .75rem;
+    }
+
+    .btn-admin {
+      padding: .45rem 1rem;
+      background: transparent;
+      border: 1px solid var(--or-fonce);
+      border-radius: 3px;
+      color: var(--or);
+      font-family: 'Cinzel', serif;
+      font-size: .7rem;
+      letter-spacing: .1em;
+      cursor: pointer;
+      transition: background .2s, border-color .2s;
+    }
+
+    .btn-admin:hover, .btn-admin.actif {
+      background: rgba(201,168,76,.15);
+      border-color: var(--or);
+    }
+
+    .pastille-admin {
+      width: 8px; height: 8px;
+      background: var(--or);
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 4px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%,100% { opacity: 1; }
+      50% { opacity: .3; }
+    }
+
+    /* ---- NAVIGATION ---- */
+    nav {
+      background: var(--blanc);
+      border-bottom: 1px solid var(--fond2);
+      display: flex;
+      overflow-x: auto;
+      padding: 0 1.5rem;
+    }
+
+    .nav-btn {
+      padding: .9rem 1.3rem;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      font-family: 'Lato', sans-serif;
+      font-size: .82rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--texte-2);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color .2s, border-color .2s;
+    }
+
+    .nav-btn:hover { color: var(--or-fonce); }
+    .nav-btn.actif {
+      color: var(--or-fonce);
+      border-bottom-color: var(--or);
+    }
+
+    /* ---- CONTENU PRINCIPAL ---- */
+    main {
+      flex: 1;
+      padding: 1.5rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* ============================================================
+       VUES
+    ============================================================ */
+    .vue { display: none; }
+    .vue.active { display: block; }
+
+    /* ---- BANDEAU STATISTIQUES ---- */
+    .stats-bandeau {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-carte {
+      background: var(--blanc);
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+      border: 1px solid var(--fond2);
+      box-shadow: 0 2px 8px var(--ombre);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-carte::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--couleur-type, var(--or));
+    }
+
+    .stat-nombre {
+      font-family: 'Cinzel', serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--texte);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--texte-2);
+      margin-top: .3rem;
+    }
+
+    /* ---- CARTES ÉVÉNEMENTS ---- */
+    .grille-evenements {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.2rem;
+    }
+
+    .carte-evt {
+      background: var(--blanc);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px var(--ombre);
+      border: 1px solid var(--fond2);
+      transition: transform .2s, box-shadow .2s;
+      cursor: pointer;
+    }
+
+    .carte-evt:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0,0,0,.12);
+    }
+
+    .carte-evt-header {
+      padding: .9rem 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--fond2);
+    }
+
+    .badge-type {
+      padding: .25rem .7rem;
+      border-radius: 20px;
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--blanc);
+      background: var(--couleur-type, var(--or));
+    }
+
+    .carte-evt-date {
+      font-family: 'Cinzel', serif;
+      font-size: .8rem;
+      color: var(--texte-2);
+    }
+
+    .carte-evt-corps {
+      padding: 1rem 1.1rem;
+    }
+
+    .carte-evt-titre {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem;
+      color: var(--texte);
+      margin-bottom: .4rem;
+    }
+
+    .carte-evt-lieu {
+      font-size: .8rem;
+      color: var(--texte-2);
+      margin-bottom: .6rem;
+      display: flex; align-items: center; gap: .3rem;
+    }
+
+    .carte-evt-pied {
+      padding: .7rem 1.1rem;
+      background: var(--fond);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: .75rem;
+      color: var(--texte-2);
+    }
+
+    .icone-petit {
+      width: 14px; height: 14px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    /* ---- FILTRES & RECHERCHE ---- */
+    .barre-outils {
+      display: flex;
+      gap: .75rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.2rem;
+      align-items: center;
+    }
+
+    .champ-recherche {
+      flex: 1;
+      min-width: 200px;
+      padding: .6rem 1rem;
+      border: 1px solid var(--fond2);
+      border-radius: 6px;
+      font-family: 'Lato', sans-serif;
+      font-size: .88rem;
+      background: var(--blanc);
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    .champ-recherche:focus { border-color: var(--or); }
+
+    .select-filtre {
+      padding: .6rem .9rem;
+      border: 1px solid var(--fond2);
+      border-radius: 6px;
+      font-family: 'Lato', sans-serif;
+      font-size: .85rem;
+      background: var(--blanc);
+      color: var(--texte);
+      outline: none;
+      cursor: pointer;
+      transition: border-color .2s;
+    }
+
+    .select-filtre:focus { border-color: var(--or); }
+
+    .btn-primaire {
+      padding: .6rem 1.2rem;
+      background: linear-gradient(135deg, var(--or-fonce), var(--or));
+      border: none;
+      border-radius: 6px;
+      color: #1a1810;
+      font-family: 'Lato', sans-serif;
+      font-size: .85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .15s, box-shadow .15s;
+      white-space: nowrap;
+    }
+
+    .btn-primaire:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(201,168,76,.35);
+    }
+
+    .btn-secondaire {
+      padding: .6rem 1.1rem;
+      background: var(--blanc);
+      border: 1px solid var(--fond2);
+      border-radius: 6px;
+      color: var(--texte-2);
+      font-family: 'Lato', sans-serif;
+      font-size: .85rem;
+      cursor: pointer;
+      transition: background .2s, border-color .2s;
+    }
+
+    .btn-secondaire:hover {
+      background: var(--fond);
+      border-color: var(--argent);
+    }
+
+    .btn-danger {
+      padding: .5rem .9rem;
+      background: transparent;
+      border: 1px solid #e74c3c;
+      border-radius: 5px;
+      color: #e74c3c;
+      font-size: .8rem;
+      cursor: pointer;
+      transition: background .2s;
+    }
+
+    .btn-danger:hover { background: rgba(231,76,60,.08); }
+
+    /* ============================================================
+       CALENDRIER
+    ============================================================ */
+    .calendrier-conteneur {
+      background: var(--blanc);
+      border-radius: 10px;
+      box-shadow: 0 2px 12px var(--ombre);
+      overflow: hidden;
+      border: 1px solid var(--fond2);
+    }
+
+    .cal-nav {
+      background: linear-gradient(135deg, #1e1c15, #2d2a1f);
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .cal-mois-titre {
+      font-family: 'Cinzel', serif;
+      color: var(--or);
+      font-size: 1.1rem;
+      letter-spacing: .1em;
+    }
+
+    .cal-btn {
+      width: 34px; height: 34px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(201,168,76,.3);
+      border-radius: 50%;
+      color: var(--or);
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .2s;
+    }
+
+    .cal-btn:hover { background: rgba(201,168,76,.2); }
+
+    .cal-jours-semaine {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      background: var(--fond2);
+    }
+
+    .cal-jour-nom {
+      padding: .6rem;
+      text-align: center;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--texte-2);
+    }
+
+    .cal-grille {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+    }
+
+    .cal-cellule {
+      min-height: 80px;
+      padding: .4rem .4rem .5rem;
+      border-right: 1px solid var(--fond2);
+      border-bottom: 1px solid var(--fond2);
+      position: relative;
+    }
+
+    .cal-cellule:nth-child(7n) { border-right: none; }
+
+    .cal-num-jour {
+      font-size: .8rem;
+      font-weight: 700;
+      color: var(--texte-2);
+      margin-bottom: .3rem;
+      line-height: 1;
+    }
+
+    .cal-cellule.aujourd-hui .cal-num-jour {
+      background: var(--or);
+      color: #1a1810;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .cal-cellule.autre-mois { background: var(--fond); }
+    .cal-cellule.autre-mois .cal-num-jour { color: var(--argent); }
+
+    .cal-evt-puce {
+      display: block;
+      padding: .15rem .4rem;
+      border-radius: 3px;
+      font-size: .65rem;
+      font-weight: 700;
+      color: var(--blanc);
+      margin-bottom: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: pointer;
+      background: var(--couleur-type, var(--or));
+      transition: opacity .15s;
+    }
+
+    .cal-evt-puce:hover { opacity: .85; }
+
+    /* ============================================================
+       MODAL / DÉTAIL ÉVÉNEMENT
+    ============================================================ */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.5);
+      z-index: 500;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 1.5rem 1rem;
+      overflow-y: auto;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s;
+    }
+
+    .overlay.ouvert {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal {
+      background: var(--blanc);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 760px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.3);
+      overflow: hidden;
+      transform: translateY(-20px);
+      transition: transform .25s;
+    }
+
+    .overlay.ouvert .modal { transform: translateY(0); }
+
+    .modal-header {
+      background: linear-gradient(135deg, #1e1c15, #2d2a1f);
+      padding: 1.4rem 1.6rem;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .modal-header-info { flex: 1; }
+
+    .modal-titre {
+      font-family: 'Playfair Display', serif;
+      color: var(--or-clair);
+      font-size: 1.3rem;
+      margin-bottom: .3rem;
+    }
+
+    .modal-sous-titre {
+      font-size: .8rem;
+      color: var(--argent-f);
+    }
+
+    .btn-fermer {
+      background: rgba(255,255,255,.1);
+      border: none;
+      color: var(--argent);
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: background .2s;
+    }
+
+    .btn-fermer:hover { background: rgba(255,255,255,.2); color: var(--blanc); }
+
+    .modal-corps {
+      padding: 1.5rem 1.6rem;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+
+    /* Sections du détail */
+    .detail-section {
+      margin-bottom: 1.4rem;
+      padding-bottom: 1.4rem;
+      border-bottom: 1px solid var(--fond2);
+    }
+
+    .detail-section:last-child { border-bottom: none; margin-bottom: 0; }
+
+    .detail-section-titre {
+      font-family: 'Cinzel', serif;
+      font-size: .75rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--or-fonce);
+      margin-bottom: .8rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .detail-section-titre::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, var(--or-fonce), transparent);
+    }
+
+    .detail-grille {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: .8rem;
+    }
+
+    .detail-champ { }
+    .detail-champ-label {
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--argent-f);
+      margin-bottom: .15rem;
+    }
+
+    .detail-champ-valeur {
+      font-size: .9rem;
+      color: var(--texte);
+    }
+
+    /* Chansons */
+    .chanson-item {
+      display: flex;
+      align-items: center;
+      padding: .6rem .8rem;
+      background: var(--fond);
+      border-radius: 6px;
+      margin-bottom: .5rem;
+      gap: .8rem;
+    }
+
+    .chanson-statut {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .chanson-statut.apprise { background: var(--vert); }
+    .chanson-statut.a-apprendre { background: var(--orange); }
+
+    .chanson-info { flex: 1; }
+    .chanson-titre-text {
+      font-size: .88rem;
+      font-weight: 700;
+      color: var(--texte);
+    }
+
+    .chanson-meta {
+      font-size: .73rem;
+      color: var(--texte-2);
+    }
+
+    .chanson-lien {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .75rem;
+      text-decoration: none;
+      color: var(--blanc);
+      flex-shrink: 0;
+    }
+
+    .chanson-lien.youtube { background: #FF0000; }
+    .chanson-lien.spotify { background: #1DB954; }
+    .chanson-lien.autre { background: var(--bleu); }
+
+    /* Logistique */
+    .logistique-item {
+      display: flex;
+      align-items: center;
+      gap: .8rem;
+      padding: .6rem .8rem;
+      background: var(--fond);
+      border-radius: 6px;
+      margin-bottom: .5rem;
+    }
+
+    .statut-badge {
+      padding: .2rem .55rem;
+      border-radius: 20px;
+      font-size: .65rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .statut-badge.prepare { background: #d5f5e3; color: #1e8449; }
+    .statut-badge.en-cours { background: #fef9e7; color: #b7950b; }
+    .statut-badge.termine  { background: #eaf2ff; color: #1a5276; }
+
+    /* Checklist */
+    .checklist-item {
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      padding: .5rem 0;
+      border-bottom: 1px solid var(--fond2);
+      cursor: pointer;
+    }
+
+    .checklist-item:last-child { border-bottom: none; }
+
+    .check-box {
+      width: 18px; height: 18px;
+      border: 2px solid var(--argent);
+      border-radius: 3px;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .75rem;
+      transition: all .2s;
+    }
+
+    .checklist-item.coche .check-box {
+      background: var(--or);
+      border-color: var(--or);
+      color: #1a1810;
+    }
+
+    .checklist-item.coche .check-texte {
+      text-decoration: line-through;
+      color: var(--texte-2);
+    }
+
+    .check-texte { font-size: .88rem; }
+
+    /* ============================================================
+       FORMULAIRE CRÉATION/ÉDITION
+    ============================================================ */
+    .form-sections {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .form-section-bloc {
+      background: var(--blanc);
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--fond2);
+      box-shadow: 0 1px 6px var(--ombre);
+    }
+
+    .form-section-entete {
+      background: var(--fond2);
+      padding: .8rem 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      border-bottom: 1px solid var(--fond2);
+    }
+
+    .form-section-titre {
+      font-family: 'Cinzel', serif;
+      font-size: .78rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--or-fonce);
+      display: flex; align-items: center; gap: .5rem;
+    }
+
+    .form-section-corps {
+      padding: 1.2rem;
+    }
+
+    .form-grille {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+
+    .form-grille-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+    }
+
+    .form-groupe {
+      display: flex;
+      flex-direction: column;
+      gap: .35rem;
+    }
+
+    .form-groupe.col-2 { grid-column: span 2; }
+    .form-groupe.col-full { grid-column: 1 / -1; }
+
+    label {
+      font-size: .75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--texte-2);
+    }
+
+    input[type="text"],
+    input[type="date"],
+    input[type="time"],
+    input[type="number"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="url"],
+    select,
+    textarea {
+      padding: .65rem .9rem;
+      border: 1px solid var(--fond2);
+      border-radius: 6px;
+      font-family: 'Lato', sans-serif;
+      font-size: .88rem;
+      color: var(--texte);
+      background: var(--blanc);
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      width: 100%;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--or);
+      box-shadow: 0 0 0 3px rgba(201,168,76,.12);
+    }
+
+    textarea { resize: vertical; min-height: 80px; }
+
+    /* ---- Chanson dans le formulaire ---- */
+    .chanson-form-item {
+      background: var(--fond);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: .8rem;
+      border: 1px solid var(--fond2);
+      position: relative;
+    }
+
+    .chanson-form-item .btn-supprimer {
+      position: absolute;
+      top: .6rem; right: .6rem;
+      background: none;
+      border: none;
+      color: var(--argent-f);
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      padding: .2rem;
+      transition: color .2s;
+    }
+
+    .chanson-form-item .btn-supprimer:hover { color: var(--rouge); }
+
+    /* ---- Logistique dans le formulaire ---- */
+    .logistique-form-item {
+      background: var(--fond);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: .8rem;
+      border: 1px solid var(--fond2);
+      position: relative;
+    }
+
+    .logistique-form-item .btn-supprimer {
+      position: absolute;
+      top: .6rem; right: .6rem;
+      background: none;
+      border: none;
+      color: var(--argent-f);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: .2rem;
+      transition: color .2s;
+    }
+
+    .logistique-form-item .btn-supprimer:hover { color: var(--rouge); }
+
+    /* ---- Transport inscrits ---- */
+    .inscrit-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .45rem .7rem;
+      background: var(--fond);
+      border-radius: 5px;
+      margin-bottom: .4rem;
+      font-size: .85rem;
+    }
+
+    /* ---- Contacts urgence ---- */
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: .8rem;
+      padding: .5rem .8rem;
+      background: var(--fond);
+      border-radius: 6px;
+      margin-bottom: .5rem;
+    }
+
+    .contact-info { flex: 1; }
+
+    /* ============================================================
+       VUE STATISTIQUES
+    ============================================================ */
+    .stats-grille {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.2rem;
+    }
+
+    .stats-carte {
+      background: var(--blanc);
+      border-radius: 10px;
+      padding: 1.3rem;
+      border: 1px solid var(--fond2);
+      box-shadow: 0 2px 8px var(--ombre);
+    }
+
+    .stats-carte-titre {
+      font-family: 'Cinzel', serif;
+      font-size: .75rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--or-fonce);
+      margin-bottom: 1rem;
+    }
+
+    .barre-stat {
+      display: flex;
+      align-items: center;
+      gap: .8rem;
+      margin-bottom: .7rem;
+    }
+
+    .barre-stat-label {
+      font-size: .78rem;
+      color: var(--texte-2);
+      min-width: 140px;
+    }
+
+    .barre-stat-piste {
+      flex: 1;
+      height: 10px;
+      background: var(--fond2);
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .barre-stat-rempli {
+      height: 100%;
+      border-radius: 5px;
+      background: var(--couleur-type, var(--or));
+      transition: width .5s ease;
+    }
+
+    .barre-stat-valeur {
+      font-size: .8rem;
+      font-weight: 700;
+      color: var(--texte);
+      min-width: 24px;
+      text-align: right;
+    }
+
+    /* ============================================================
+       NOTIFICATIONS
+    ============================================================ */
+    .notif-conteneur {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      pointer-events: none;
+    }
+
+    .notif {
+      background: var(--blanc);
+      border-left: 4px solid var(--or);
+      border-radius: 6px;
+      padding: .8rem 1.1rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,.15);
+      font-size: .85rem;
+      max-width: 320px;
+      pointer-events: all;
+      animation: glisserEntrer .3s ease;
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+    }
+
+    .notif.succes { border-left-color: var(--vert); }
+    .notif.erreur { border-left-color: var(--rouge); }
+
+    @keyframes glisserEntrer {
+      from { transform: translateX(100%); opacity: 0; }
+      to   { transform: translateX(0);   opacity: 1; }
+    }
+
+    /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+    @media (max-width: 640px) {
+      main { padding: 1rem .8rem; }
+
+      .grille-evenements {
+        grid-template-columns: 1fr;
+      }
+
+      .cal-cellule { min-height: 55px; }
+      .cal-jour-nom { font-size: .65rem; padding: .4rem .2rem; }
+
+      .stats-bandeau {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      header { padding: .7rem 1rem; }
+      .header-titre-bloc p { display: none; }
+
+      .form-grille, .form-grille-3 {
+        grid-template-columns: 1fr;
+      }
+
+      .form-groupe.col-2 { grid-column: 1; }
+    }
+
+    @media (max-width: 900px) {
+      .cal-evt-puce { display: none; }
+      .cal-cellule.a-evt::after {
+        content: '•';
+        color: var(--or);
+        font-size: .8rem;
+      }
+    }
+
+    /* ============================================================
+       UTILITAIRES
+    ============================================================ */
+    .vide-message {
+      text-align: center;
+      padding: 3rem;
+      color: var(--texte-2);
+    }
+
+    .vide-message p { font-size: .9rem; margin-top: .5rem; }
+
+    .separateur-or {
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--or-fonce), transparent);
+      margin: 1.2rem 0;
+    }
+
+    .tag-nouveau {
+      background: var(--rouge);
+      color: var(--blanc);
+      font-size: .6rem;
+      font-weight: 700;
+      padding: .1rem .4rem;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      vertical-align: middle;
+      margin-left: .4rem;
+    }
+
+    .transport-inscrits-section {
+      margin-top: .8rem;
+    }
+
+    .ajouter-inscrit {
+      display: flex;
+      gap: .5rem;
+      margin-top: .5rem;
+    }
+
+    .ajouter-inscrit input {
+      flex: 1;
+    }
+
+    /* Barre de progression transport */
+    .transport-places {
+      margin-top: .8rem;
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      font-size: .82rem;
+      color: var(--texte-2);
+    }
+
+    .places-barre {
+      flex: 1;
+      height: 8px;
+      background: var(--fond2);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .places-rempli {
+      height: 100%;
+      background: linear-gradient(to right, var(--or-fonce), var(--or));
+      border-radius: 4px;
+      transition: width .3s;
+    }
+
+    .modal-actions {
+      padding: 1rem 1.6rem;
+      background: var(--fond);
+      display: flex;
+      gap: .7rem;
+      justify-content: flex-end;
+      border-top: 1px solid var(--fond2);
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- ============================================================
+     ÉCRAN DE CONNEXION
+============================================================ -->
+<div id="ecran-connexion">
+  <div class="connexion-boite">
+    <img src="LOGO_APL.jpg" alt="Logo APL" class="logo-connexion"
+         onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='flex';" />
+    <div id="logo-fallback" style="display:none; width:110px;height:110px;border-radius:50%;background:linear-gradient(135deg,#2d2a1f,#1a1810);border:3px solid var(--or);margin:0 auto 1.5rem;align-items:center;justify-content:center;">
+      <span style="font-family:'Cinzel',serif;color:var(--or);font-size:1.6rem;font-weight:700;">APL</span>
+    </div>
+    <h1 class="connexion-titre">Antsam-Pideran'ny Lanitra</h1>
+    <p class="connexion-sous-titre">Gestion des événements de la chorale</p>
+    <p class="connexion-verset">Kol. 3,16 — Que la parole du Christ habite en vous</p>
+    <input type="password" class="champ-mdp" id="mdp-input"
+           placeholder="Mot de passe"
+           onkeydown="if(event.key==='Enter')connexion()" />
+    <button class="btn-connexion" onclick="connexion()">Entrer ✦</button>
+    <p class="erreur-mdp" id="erreur-mdp"></p>
+  </div>
+</div>
+
+<!-- ============================================================
+     APPLICATION PRINCIPALE
+============================================================ -->
+<div id="app">
+
+  <!-- EN-TÊTE -->
+  <header>
+    <div class="header-gauche">
+      <img src="LOGO_APL.jpg" alt="APL" class="logo-header"
+           onerror="this.style.background='linear-gradient(135deg,#2d2a1f,#1a1810)';this.style.display='flex';this.alt='APL';" />
+      <div class="header-titre-bloc">
+        <h1>APL — Chorale</h1>
+        <p>Antsam-Pideran'ny Lanitra · Kol. 3,16</p>
+      </div>
+    </div>
+    <div class="header-droite">
+      <button class="btn-admin" id="btn-mode-admin" onclick="toggleAdmin()">
+        <span id="pastille-admin" style="display:none;" class="pastille-admin"></span>
+        Mode Admin
+      </button>
+    </div>
+  </header>
+
+  <!-- NAVIGATION -->
+  <nav>
+    <button class="nav-btn actif" onclick="changerVue('accueil', this)">🏠 Accueil</button>
+    <button class="nav-btn" onclick="changerVue('calendrier', this)">📅 Calendrier</button>
+    <button class="nav-btn" onclick="changerVue('liste', this)">📋 Événements</button>
+    <button class="nav-btn" onclick="changerVue('statistiques', this)">📊 Statistiques</button>
+    <button class="nav-btn admin-only" style="display:none;" onclick="changerVue('admin', this)" id="nav-admin">⚙️ Administration</button>
+  </nav>
+
+  <!-- CONTENU -->
+  <main>
+
+    <!-- ======= VUE ACCUEIL ======= -->
+    <div class="vue active" id="vue-accueil">
+      <!-- Statistiques rapides -->
+      <div class="stats-bandeau" id="stats-bandeau"></div>
+
+      <h2 style="font-family:'Playfair Display',serif; font-size:1.15rem; margin-bottom:1rem; color:var(--texte);">
+        Prochains événements
+      </h2>
+
+      <div class="grille-evenements" id="prochains-evenements"></div>
+    </div>
+
+    <!-- ======= VUE CALENDRIER ======= -->
+    <div class="vue" id="vue-calendrier">
+      <div class="calendrier-conteneur">
+        <div class="cal-nav">
+          <button class="cal-btn" onclick="naviguerMois(-1)">◀</button>
+          <span class="cal-mois-titre" id="cal-titre"></span>
+          <button class="cal-btn" onclick="naviguerMois(1)">▶</button>
+        </div>
+        <div class="cal-jours-semaine">
+          <div class="cal-jour-nom">Lun</div>
+          <div class="cal-jour-nom">Mar</div>
+          <div class="cal-jour-nom">Mer</div>
+          <div class="cal-jour-nom">Jeu</div>
+          <div class="cal-jour-nom">Ven</div>
+          <div class="cal-jour-nom">Sam</div>
+          <div class="cal-jour-nom">Dim</div>
+        </div>
+        <div class="cal-grille" id="cal-grille"></div>
+      </div>
+
+      <!-- Légende -->
+      <div style="display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1rem;">
+        <span style="font-size:.75rem;color:var(--texte-2);align-self:center;">Types :</span>
+        <span style="padding:.2rem .7rem;border-radius:3px;font-size:.7rem;font-weight:700;background:var(--messe);color:#fff;">Messe dominicale</span>
+        <span style="padding:.2rem .7rem;border-radius:3px;font-size:.7rem;font-weight:700;background:var(--concert-i);color:#fff;">Concert invité</span>
+        <span style="padding:.2rem .7rem;border-radius:3px;font-size:.7rem;font-weight:700;background:var(--famille);color:#fff;">Événement familial</span>
+        <span style="padding:.2rem .7rem;border-radius:3px;font-size:.7rem;font-weight:700;background:var(--liturgie);color:#fff;">Animation liturgique</span>
+        <span style="padding:.2rem .7rem;border-radius:3px;font-size:.7rem;font-weight:700;background:var(--concert-p);color:#fff;">Concert propre</span>
+      </div>
+    </div>
+
+    <!-- ======= VUE LISTE ======= -->
+    <div class="vue" id="vue-liste">
+      <div class="barre-outils">
+        <input type="text" class="champ-recherche" placeholder="🔍 Rechercher un événement..."
+               oninput="rechercherEvenements(this.value)" />
+        <select class="select-filtre" onchange="filtrerParType(this.value)">
+          <option value="">Tous les types</option>
+          <option value="Messe dominicale">Messe dominicale</option>
+          <option value="Concert invité">Concert invité</option>
+          <option value="Événement familial">Événement familial</option>
+          <option value="Animation liturgique">Animation liturgique</option>
+          <option value="Concert propre">Concert propre</option>
+        </select>
+        <select class="select-filtre" onchange="filtrerParPeriode(this.value)">
+          <option value="">Toutes les périodes</option>
+          <option value="futur">À venir</option>
+          <option value="passe">Passés</option>
+          <option value="mois">Ce mois</option>
+        </select>
+      </div>
+      <div class="grille-evenements" id="liste-evenements"></div>
+    </div>
+
+    <!-- ======= VUE STATISTIQUES ======= -->
+    <div class="vue" id="vue-statistiques">
+      <div class="stats-grille" id="stats-grille"></div>
+    </div>
+
+    <!-- ======= VUE ADMIN ======= -->
+    <div class="vue" id="vue-admin">
+      <div class="barre-outils" style="margin-bottom:1.5rem;">
+        <h2 style="font-family:'Playfair Display',serif;font-size:1.2rem;flex:1;">Administration</h2>
+        <button class="btn-primaire" onclick="ouvrirFormulaire()">+ Nouvel événement</button>
+      </div>
+      <div class="grille-evenements" id="admin-evenements"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ============================================================
+     MODAL DÉTAIL ÉVÉNEMENT (lecture)
+============================================================ -->
+<div class="overlay" id="overlay-detail" onclick="fermerOverlay('overlay-detail', event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <div class="modal-titre" id="detail-titre">—</div>
+        <div class="modal-sous-titre" id="detail-sous-titre">—</div>
+      </div>
+      <button class="btn-fermer" onclick="fermerOverlay('overlay-detail')">✕</button>
+    </div>
+    <div class="modal-corps" id="detail-corps"></div>
+    <div class="modal-actions" id="detail-actions"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL FORMULAIRE CRÉATION/ÉDITION
+============================================================ -->
+<div class="overlay" id="overlay-form" onclick="fermerOverlay('overlay-form', event)">
+  <div class="modal" style="max-width:860px;">
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <div class="modal-titre" id="form-titre-modal">Nouvel événement</div>
+        <div class="modal-sous-titre">Remplissez les informations de l'événement</div>
+      </div>
+      <button class="btn-fermer" onclick="fermerOverlay('overlay-form')">✕</button>
+    </div>
+    <div class="modal-corps">
+      <div class="form-sections" id="form-sections">
+        <!-- Injecté par JS -->
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondaire" onclick="fermerOverlay('overlay-form')">Annuler</button>
+      <button class="btn-primaire" onclick="sauvegarderEvenement()">💾 Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MOT DE PASSE ADMIN -->
+<div class="overlay" id="overlay-mdp-admin" onclick="fermerOverlay('overlay-mdp-admin', event)">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <div class="modal-titre">Accès Administrateur</div>
+        <div class="modal-sous-titre">Saisissez le mot de passe pour continuer</div>
+      </div>
+      <button class="btn-fermer" onclick="fermerOverlay('overlay-mdp-admin')">✕</button>
+    </div>
+    <div class="modal-corps" style="padding:1.5rem 1.6rem;">
+      <div class="form-groupe">
+        <label>Mot de passe</label>
+        <input type="password" id="mdp-admin-input" placeholder="••••••••"
+               onkeydown="if(event.key==='Enter')validerAdmin()" />
+      </div>
+      <p class="erreur-mdp" id="erreur-admin" style="color:var(--rouge);font-size:.8rem;margin-top:.5rem;height:1.2rem;"></p>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondaire" onclick="fermerOverlay('overlay-mdp-admin')">Annuler</button>
+      <button class="btn-primaire" onclick="validerAdmin()">Valider</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div class="notif-conteneur" id="notif-conteneur"></div>
+
+<!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
+<script>
+/* ============================================================
+   DONNÉES & ÉTAT
+============================================================ */
+
+// Clé de stockage localStorage
+const CLE_STOCKAGE = 'apl_evenements_v1';
+const CLE_CHECKS   = 'apl_checks_v1';
+const MDP          = 'Apl26';
+
+// État de l'application
+let etat = {
+  connecte:  false,
+  admin:     false,
+  vue:       'accueil',
+  calMois:   new Date().getMonth(),
+  calAnnee:  new Date().getFullYear(),
+  evenements: [],
+  filtreType:    '',
+  filtrePeriode: '',
+  filtreRecherche: '',
+  formEdition: null,
+  // Données temporaires du formulaire en cours
+  formChansons: [],
+  formLogistique: [],
+  formInscritsTransport: [],
+  formChecklist: [],
+  formContacts: [],
+};
+
+// Chargement des données
+function chargerDonnees() {
+  try {
+    const raw = localStorage.getItem(CLE_STOCKAGE);
+    if (raw) etat.evenements = JSON.parse(raw);
+  } catch(e) { etat.evenements = []; }
+}
+
+function sauverDonnees() {
+  localStorage.setItem(CLE_STOCKAGE, JSON.stringify(etat.evenements));
+}
+
+// Couleurs par type
+const COULEURS_TYPE = {
+  'Messe dominicale':    'var(--messe)',
+  'Concert invité':      'var(--concert-i)',
+  'Événement familial':  'var(--famille)',
+  'Animation liturgique':'var(--liturgie)',
+  'Concert propre':      'var(--concert-p)',
+};
+
+function couleurType(type) {
+  return COULEURS_TYPE[type] || 'var(--or)';
+}
+
+/* ============================================================
+   AUTHENTIFICATION
+============================================================ */
+function connexion() {
+  const val = document.getElementById('mdp-input').value;
+  if (val === MDP) {
+    etat.connecte = true;
+    document.getElementById('ecran-connexion').classList.add('masque');
+    document.getElementById('app').classList.add('visible');
+    document.getElementById('mdp-input').value = '';
+    chargerDonnees();
+    rendreToutesVues();
+    afficherNotif('Bienvenue dans l\'espace APL ✦', 'succes');
+  } else {
+    const err = document.getElementById('erreur-mdp');
+    err.textContent = 'Mot de passe incorrect. Veuillez réessayer.';
+    setTimeout(() => { err.textContent = ''; }, 3000);
+  }
+}
+
+function toggleAdmin() {
+  if (etat.admin) {
+    etat.admin = false;
+    document.getElementById('btn-mode-admin').classList.remove('actif');
+    document.getElementById('pastille-admin').style.display = 'none';
+    document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+    if (etat.vue === 'admin') changerVue('accueil', document.querySelector('.nav-btn'));
+    afficherNotif('Mode administrateur désactivé');
+  } else {
+    document.getElementById('mdp-admin-input').value = '';
+    document.getElementById('erreur-admin').textContent = '';
+    ouvrirOverlay('overlay-mdp-admin');
+  }
+}
+
+function validerAdmin() {
+  const val = document.getElementById('mdp-admin-input').value;
+  if (val === MDP) {
+    etat.admin = true;
+    fermerOverlay('overlay-mdp-admin');
+    document.getElementById('btn-mode-admin').classList.add('actif');
+    document.getElementById('pastille-admin').style.display = 'inline-block';
+    document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
+    afficherNotif('Mode administrateur activé ✦', 'succes');
+  } else {
+    document.getElementById('erreur-admin').textContent = 'Mot de passe incorrect';
+    setTimeout(() => { document.getElementById('erreur-admin').textContent = ''; }, 2500);
+  }
+}
+
+/* ============================================================
+   NAVIGATION
+============================================================ */
+function changerVue(nom, btn) {
+  etat.vue = nom;
+  document.querySelectorAll('.vue').forEach(v => v.classList.remove('active'));
+  document.getElementById('vue-' + nom).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('actif'));
+  if (btn) btn.classList.add('actif');
+
+  // Rendu spécifique
+  if (nom === 'calendrier') rendreCalendrier();
+  if (nom === 'liste') rendreListe();
+  if (nom === 'statistiques') rendreStatistiques();
+  if (nom === 'admin') rendreAdmin();
+  if (nom === 'accueil') rendreAccueil();
+}
+
+/* ============================================================
+   RENDU
+============================================================ */
+function rendreToutesVues() {
+  rendreAccueil();
+}
+
+// ---- ACCUEIL ----
+function rendreAccueil() {
+  // Stats bandeau
+  const total = etat.evenements.length;
+  const now = new Date();
+  const futurs = etat.evenements.filter(e => new Date(e.date) >= now).length;
+  const parType = {};
+  etat.evenements.forEach(e => {
+    parType[e.type] = (parType[e.type] || 0) + 1;
+  });
+  const typePlusFrequent = Object.entries(parType).sort((a,b)=>b[1]-a[1])[0];
+
+  document.getElementById('stats-bandeau').innerHTML = `
+    <div class="stat-carte" style="--couleur-type: var(--or);">
+      <div class="stat-nombre">${total}</div>
+      <div class="stat-label">Total événements</div>
+    </div>
+    <div class="stat-carte" style="--couleur-type: var(--concert-i);">
+      <div class="stat-nombre">${futurs}</div>
+      <div class="stat-label">À venir</div>
+    </div>
+    <div class="stat-carte" style="--couleur-type: var(--famille);">
+      <div class="stat-nombre">${total - futurs}</div>
+      <div class="stat-label">Passés</div>
+    </div>
+    <div class="stat-carte" style="--couleur-type: var(--liturgie);">
+      <div class="stat-nombre">${typePlusFrequent ? typePlusFrequent[1] : 0}</div>
+      <div class="stat-label">${typePlusFrequent ? typePlusFrequent[0] : 'Aucun type'}</div>
+    </div>
+  `;
+
+  // Prochains événements (max 6)
+  const prochains = etat.evenements
+    .filter(e => new Date(e.date) >= now)
+    .sort((a,b) => new Date(a.date) - new Date(b.date))
+    .slice(0, 6);
+
+  const cont = document.getElementById('prochains-evenements');
+  if (prochains.length === 0) {
+    cont.innerHTML = `<div class="vide-message" style="grid-column:1/-1;">
+      <div style="font-size:2.5rem;margin-bottom:.5rem;">🎵</div>
+      <p style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--texte);">Aucun événement à venir</p>
+      <p>${etat.admin ? 'Créez votre premier événement depuis l\'onglet Administration.' : 'Les événements apparaîtront ici une fois créés.'}</p>
+    </div>`;
+    return;
+  }
+  cont.innerHTML = prochains.map(e => carteEvenement(e)).join('');
+}
+
+// ---- CARTE ÉVÉNEMENT ----
+function carteEvenement(evt) {
+  const couleur = couleurType(evt.type);
+  const date = formaterDate(evt.date);
+  const estNouv = estNouvel(evt);
+  const nChansons = (evt.chansons || []).length;
+  const nLogistique = (evt.logistique || []).length;
+
+  return `
+    <div class="carte-evt" onclick="voirEvenement('${evt.id}')" style="--couleur-type:${couleur};">
+      <div class="carte-evt-header">
+        <span class="badge-type" style="background:${couleur};">${evt.type}</span>
+        <span class="carte-evt-date">${date}</span>
+      </div>
+      <div class="carte-evt-corps">
+        <div class="carte-evt-titre">
+          ${echapper(evt.titre || evt.type)}
+          ${estNouv ? '<span class="tag-nouveau">Nouveau</span>' : ''}
+        </div>
+        <div class="carte-evt-lieu">
+          <span>📍</span> ${echapper(evt.lieu || 'Lieu non défini')}
+        </div>
+        <div style="font-size:.78rem;color:var(--texte-2);line-height:1.5;">
+          ${evt.heureDebut ? '⏰ ' + evt.heureDebut + (evt.heureFin ? ' – ' + evt.heureFin : '') : ''}
+        </div>
+      </div>
+      <div class="carte-evt-pied">
+        <span>🎵 ${nChansons} chanson${nChansons!==1?'s':''}</span>
+        <span>✔ ${nLogistique} logistique</span>
+        <span style="color:${couleur};font-size:.8rem;">→ Voir</span>
+      </div>
+    </div>
+  `;
+}
+
+// ---- LISTE ----
+function rendreListe() {
+  let evts = [...etat.evenements];
+  const now = new Date();
+
+  if (etat.filtreType) evts = evts.filter(e => e.type === etat.filtreType);
+  if (etat.filtrePeriode === 'futur') evts = evts.filter(e => new Date(e.date) >= now);
+  else if (etat.filtrePeriode === 'passe') evts = evts.filter(e => new Date(e.date) < now);
+  else if (etat.filtrePeriode === 'mois') {
+    evts = evts.filter(e => {
+      const d = new Date(e.date);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    });
+  }
+
+  if (etat.filtreRecherche) {
+    const q = etat.filtreRecherche.toLowerCase();
+    evts = evts.filter(e =>
+      (e.titre || '').toLowerCase().includes(q) ||
+      (e.lieu || '').toLowerCase().includes(q) ||
+      (e.type || '').toLowerCase().includes(q) ||
+      (e.initiateur || '').toLowerCase().includes(q)
+    );
+  }
+
+  evts.sort((a,b) => new Date(a.date) - new Date(b.date));
+
+  const cont = document.getElementById('liste-evenements');
+  if (evts.length === 0) {
+    cont.innerHTML = `<div class="vide-message" style="grid-column:1/-1;">
+      <div style="font-size:2.5rem;margin-bottom:.5rem;">🔍</div>
+      <p>Aucun événement trouvé</p>
+    </div>`;
+    return;
+  }
+  cont.innerHTML = evts.map(e => carteEvenement(e)).join('');
+}
+
+function rechercherEvenements(val) {
+  etat.filtreRecherche = val;
+  rendreListe();
+}
+
+function filtrerParType(val) {
+  etat.filtreType = val;
+  rendreListe();
+}
+
+function filtrerParPeriode(val) {
+  etat.filtrePeriode = val;
+  rendreListe();
+}
+
+// ---- CALENDRIER ----
+function rendreCalendrier() {
+  const mois = etat.calMois;
+  const annee = etat.calAnnee;
+  const now = new Date();
+
+  // Titre
+  const nomsMois = ['Janvier','Février','Mars','Avril','Mai','Juin',
+                    'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  document.getElementById('cal-titre').textContent = `${nomsMois[mois]} ${annee}`;
+
+  // Premier jour du mois (lundi=0)
+  const premierJour = new Date(annee, mois, 1);
+  let jourDepart = premierJour.getDay(); // 0=dim
+  jourDepart = jourDepart === 0 ? 6 : jourDepart - 1; // convertir lundi=0
+
+  const nbJours = new Date(annee, mois + 1, 0).getDate();
+  const nbJoursMoisPrec = new Date(annee, mois, 0).getDate();
+
+  // Index événements par date
+  const evtParDate = {};
+  etat.evenements.forEach(e => {
+    if (!e.date) return;
+    const d = new Date(e.date);
+    if (d.getFullYear() === annee && d.getMonth() === mois) {
+      const key = d.getDate();
+      if (!evtParDate[key]) evtParDate[key] = [];
+      evtParDate[key].push(e);
+    }
+  });
+
+  let html = '';
+  let total = 42;
+
+  for (let i = 0; i < total; i++) {
+    let jour, estAutre = false, dateObj;
+
+    if (i < jourDepart) {
+      jour = nbJoursMoisPrec - jourDepart + i + 1;
+      estAutre = true;
+      dateObj = new Date(annee, mois - 1, jour);
+    } else if (i >= jourDepart + nbJours) {
+      jour = i - jourDepart - nbJours + 1;
+      estAutre = true;
+      dateObj = new Date(annee, mois + 1, jour);
+    } else {
+      jour = i - jourDepart + 1;
+      dateObj = new Date(annee, mois, jour);
+    }
+
+    const estAujourdhui = !estAutre &&
+      now.getDate() === jour && now.getMonth() === mois && now.getFullYear() === annee;
+
+    const evts = (!estAutre && evtParDate[jour]) ? evtParDate[jour] : [];
+    const aEvt = evts.length > 0;
+
+    html += `<div class="cal-cellule ${estAutre ? 'autre-mois' : ''} ${estAujourdhui ? 'aujourd-hui' : ''} ${aEvt ? 'a-evt' : ''}">
+      <div class="cal-num-jour">${jour}</div>
+      ${evts.map(e => `<span class="cal-evt-puce" style="--couleur-type:${couleurType(e.type)};"
+        onclick="voirEvenement('${e.id}');event.stopPropagation();">
+        ${echapper(e.titre || e.type)}
+      </span>`).join('')}
+    </div>`;
+  }
+
+  document.getElementById('cal-grille').innerHTML = html;
+}
+
+function naviguerMois(delta) {
+  etat.calMois += delta;
+  if (etat.calMois > 11) { etat.calMois = 0; etat.calAnnee++; }
+  if (etat.calMois < 0)  { etat.calMois = 11; etat.calAnnee--; }
+  rendreCalendrier();
+}
+
+// ---- STATISTIQUES ----
+function rendreStatistiques() {
+  const evts = etat.evenements;
+  const now = new Date();
+
+  // Par type
+  const parType = {};
+  Object.keys(COULEURS_TYPE).forEach(t => { parType[t] = 0; });
+  evts.forEach(e => { if (parType[e.type] !== undefined) parType[e.type]++; });
+  const maxType = Math.max(...Object.values(parType), 1);
+
+  // Par mois (12 derniers mois)
+  const parMois = {};
+  const nomsMois = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = `${nomsMois[d.getMonth()]} ${d.getFullYear()}`;
+    parMois[key] = 0;
+  }
+  evts.forEach(e => {
+    if (!e.date) return;
+    const d = new Date(e.date);
+    const key = `${nomsMois[d.getMonth()]} ${d.getFullYear()}`;
+    if (parMois[key] !== undefined) parMois[key]++;
+  });
+  const maxMois = Math.max(...Object.values(parMois), 1);
+
+  // Chansons
+  let totalChansons = 0, apprises = 0;
+  evts.forEach(e => {
+    (e.chansons || []).forEach(c => {
+      totalChansons++;
+      if (c.statut === 'apprise') apprises++;
+    });
+  });
+
+  document.getElementById('stats-grille').innerHTML = `
+    <div class="stats-carte">
+      <div class="stats-carte-titre">Événements par type</div>
+      ${Object.entries(parType).map(([type, nb]) => `
+        <div class="barre-stat">
+          <div class="barre-stat-label">${type}</div>
+          <div class="barre-stat-piste">
+            <div class="barre-stat-rempli" style="width:${(nb/maxType*100).toFixed(0)}%;--couleur-type:${couleurType(type)};"></div>
+          </div>
+          <div class="barre-stat-valeur">${nb}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="stats-carte">
+      <div class="stats-carte-titre">Activité mensuelle (12 mois)</div>
+      ${Object.entries(parMois).map(([mois, nb]) => `
+        <div class="barre-stat">
+          <div class="barre-stat-label" style="min-width:80px;">${mois}</div>
+          <div class="barre-stat-piste">
+            <div class="barre-stat-rempli" style="width:${(nb/maxMois*100).toFixed(0)}%;--couleur-type:var(--or);"></div>
+          </div>
+          <div class="barre-stat-valeur">${nb}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="stats-carte">
+      <div class="stats-carte-titre">Chansons</div>
+      <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:1rem;">
+        <div>
+          <div style="font-family:'Cinzel',serif;font-size:2rem;font-weight:700;">${totalChansons}</div>
+          <div style="font-size:.75rem;color:var(--texte-2);text-transform:uppercase;">Total</div>
+        </div>
+        <div>
+          <div style="font-family:'Cinzel',serif;font-size:2rem;font-weight:700;color:var(--vert);">${apprises}</div>
+          <div style="font-size:.75rem;color:var(--texte-2);text-transform:uppercase;">Apprises</div>
+        </div>
+        <div>
+          <div style="font-family:'Cinzel',serif;font-size:2rem;font-weight:700;color:var(--orange);">${totalChansons - apprises}</div>
+          <div style="font-size:.75rem;color:var(--texte-2);text-transform:uppercase;">À apprendre</div>
+        </div>
+      </div>
+      ${totalChansons > 0 ? `
+        <div class="barre-stat-piste" style="height:14px;">
+          <div class="barre-stat-rempli" style="width:${(apprises/totalChansons*100).toFixed(0)}%;--couleur-type:var(--vert);"></div>
+        </div>
+        <div style="font-size:.75rem;color:var(--texte-2);margin-top:.4rem;">${(apprises/totalChansons*100).toFixed(0)}% apprises</div>
+      ` : '<p style="font-size:.85rem;color:var(--texte-2);">Aucune chanson enregistrée.</p>'}
+    </div>
+
+    <div class="stats-carte">
+      <div class="stats-carte-titre">Résumé global</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;">
+        <div style="background:var(--fond);border-radius:6px;padding:.8rem;text-align:center;">
+          <div style="font-family:'Cinzel',serif;font-size:1.6rem;font-weight:700;">${evts.length}</div>
+          <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--texte-2);">Total</div>
+        </div>
+        <div style="background:var(--fond);border-radius:6px;padding:.8rem;text-align:center;">
+          <div style="font-family:'Cinzel',serif;font-size:1.6rem;font-weight:700;color:var(--concert-i);">${evts.filter(e=>new Date(e.date)>=now).length}</div>
+          <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--texte-2);">À venir</div>
+        </div>
+        <div style="background:var(--fond);border-radius:6px;padding:.8rem;text-align:center;">
+          <div style="font-family:'Cinzel',serif;font-size:1.6rem;font-weight:700;color:var(--famille);">${Object.keys(parType).filter(t=>parType[t]>0).length}</div>
+          <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--texte-2);">Types utilisés</div>
+        </div>
+        <div style="background:var(--fond);border-radius:6px;padding:.8rem;text-align:center;">
+          <div style="font-family:'Cinzel',serif;font-size:1.6rem;font-weight:700;color:var(--liturgie);">${totalChansons}</div>
+          <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--texte-2);">Chansons</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ---- ADMIN ----
+function rendreAdmin() {
+  const evts = [...etat.evenements].sort((a,b) => new Date(b.date) - new Date(a.date));
+  const cont = document.getElementById('admin-evenements');
+  if (evts.length === 0) {
+    cont.innerHTML = `<div class="vide-message" style="grid-column:1/-1;">
+      <div style="font-size:2.5rem;margin-bottom:.5rem;">🎶</div>
+      <p style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--texte);">Aucun événement créé</p>
+      <p>Cliquez sur "+ Nouvel événement" pour commencer.</p>
+    </div>`;
+    return;
+  }
+
+  cont.innerHTML = evts.map(e => {
+    const couleur = couleurType(e.type);
+    return `
+      <div class="carte-evt" style="--couleur-type:${couleur};">
+        <div class="carte-evt-header" onclick="voirEvenement('${e.id}')">
+          <span class="badge-type" style="background:${couleur};">${e.type}</span>
+          <span class="carte-evt-date">${formaterDate(e.date)}</span>
+        </div>
+        <div class="carte-evt-corps" onclick="voirEvenement('${e.id}')" style="cursor:pointer;">
+          <div class="carte-evt-titre">${echapper(e.titre || e.type)}</div>
+          <div class="carte-evt-lieu"><span>📍</span> ${echapper(e.lieu || '—')}</div>
+        </div>
+        <div class="carte-evt-pied">
+          <button class="btn-secondaire" style="font-size:.75rem;padding:.35rem .75rem;"
+            onclick="ouvrirFormulaire('${e.id}')">✏️ Modifier</button>
+          <button class="btn-danger" style="font-size:.75rem;padding:.35rem .75rem;"
+            onclick="confirmerSuppression('${e.id}')">🗑 Supprimer</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* ============================================================
+   DÉTAIL ÉVÉNEMENT
+============================================================ */
+function voirEvenement(id) {
+  const evt = etat.evenements.find(e => e.id === id);
+  if (!evt) return;
+
+  document.getElementById('detail-titre').textContent = evt.titre || evt.type;
+  document.getElementById('detail-sous-titre').textContent =
+    `${evt.type} · ${formaterDate(evt.date)}${evt.heureDebut ? ' · ' + evt.heureDebut : ''}`;
+
+  // Récupérer les états de checklist depuis localStorage
+  let checksEvt = {};
+  try { checksEvt = JSON.parse(localStorage.getItem(CLE_CHECKS + '_' + id) || '{}'); } catch(e) {}
+
+  let html = '';
+
+  // Section infos générales
+  html += `<div class="detail-section">
+    <div class="detail-section-titre">Informations générales</div>
+    <div class="detail-grille">
+      ${champ('Type', evt.type)}
+      ${champ('Date', formaterDate(evt.date))}
+      ${champ('Heure début', evt.heureDebut || '—')}
+      ${champ('Heure fin', evt.heureFin || '—')}
+      ${champ('Lieu', evt.lieu || '—')}
+      ${champ('Initiateur', evt.initiateur || '—')}
+      ${champ('Nombre de chants', evt.nbChants || '—')}
+    </div>
+    ${evt.description ? `<div style="margin-top:.8rem;"><div class="detail-champ-label">Description / Contexte</div>
+      <div style="font-size:.88rem;line-height:1.7;margin-top:.2rem;">${echapper(evt.description).replace(/\n/g,'<br>')}</div></div>` : ''}
+    ${evt.programme ? `<div style="margin-top:.8rem;"><div class="detail-champ-label">Programme</div>
+      <div style="font-size:.88rem;line-height:1.7;margin-top:.2rem;">${echapper(evt.programme).replace(/\n/g,'<br>')}</div></div>` : ''}
+    ${evt.liturgie ? `<div style="margin-top:.8rem;"><div class="detail-champ-label">Programme liturgique</div>
+      <div style="font-size:.88rem;line-height:1.7;margin-top:.2rem;">${echapper(evt.liturgie).replace(/\n/g,'<br>')}</div></div>` : ''}
+  </div>`;
+
+  // Chansons
+  if ((evt.chansons || []).length > 0) {
+    html += `<div class="detail-section">
+      <div class="detail-section-titre">Chansons (${evt.chansons.length})</div>
+      ${evt.chansons.map(c => {
+        const lien = c.lien ? `<a class="chanson-lien ${lienType(c.lien)}" href="${c.lien}" target="_blank" rel="noopener">▶</a>` : '';
+        return `<div class="chanson-item">
+          <div class="chanson-statut ${c.statut === 'apprise' ? 'apprise' : 'a-apprendre'}"></div>
+          <div class="chanson-info">
+            <div class="chanson-titre-text">${echapper(c.titre)}</div>
+            <div class="chanson-meta">${c.auteur ? 'Par ' + echapper(c.auteur) : ''}${c.duree ? ' · ' + c.duree : ''} · ${c.statut === 'apprise' ? '✓ Apprise' : '⏳ À apprendre'}</div>
+          </div>
+          ${lien}
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  // Transport
+  if (evt.transport && (evt.transport.responsable || evt.transport.places)) {
+    const t = evt.transport;
+    const inscrits = t.inscrits || [];
+    const pct = t.places ? Math.min(100, Math.round(inscrits.length / t.places * 100)) : 0;
+    html += `<div class="detail-section">
+      <div class="detail-section-titre">Transport</div>
+      <div class="detail-grille">
+        ${champ('Responsable', t.responsable || '—')}
+        ${champ('Contact', t.contact || '—')}
+        ${champ('Places disponibles', t.places || '—')}
+        ${champ('Frais / personne', t.frais ? t.frais + ' €' : '—')}
+      </div>
+      ${t.places ? `<div class="transport-places">
+        <span>${inscrits.length} / ${t.places} inscrits</span>
+        <div class="places-barre"><div class="places-rempli" style="width:${pct}%;"></div></div>
+        <span>${pct}%</span>
+      </div>` : ''}
+      ${inscrits.length > 0 ? `<div style="margin-top:.8rem;">
+        <div class="detail-champ-label" style="margin-bottom:.4rem;">Membres inscrits</div>
+        ${inscrits.map(m => `<div class="inscrit-item"><span>${echapper(m)}</span></div>`).join('')}
+      </div>` : ''}
+    </div>`;
+  }
+
+  // Logistique
+  if ((evt.logistique || []).length > 0) {
+    html += `<div class="detail-section">
+      <div class="detail-section-titre">Logistique</div>
+      ${evt.logistique.map(l => `<div class="logistique-item">
+        <div style="flex:1;">
+          <div style="font-size:.88rem;font-weight:700;">${echapper(l.description)}</div>
+          <div style="font-size:.75rem;color:var(--texte-2);">Responsable : ${echapper(l.responsable || '—')}</div>
+        </div>
+        <span class="statut-badge ${l.statut}">${l.statut === 'prepare' ? 'Préparé' : l.statut === 'en-cours' ? 'En cours' : 'Terminé'}</span>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  // Checklist
+  if ((evt.checklist || []).length > 0) {
+    html += `<div class="detail-section">
+      <div class="detail-section-titre">Checklist préparatifs</div>
+      ${evt.checklist.map((item, i) => {
+        const cle = `check_${i}`;
+        const coche = checksEvt[cle] || false;
+        return `<div class="checklist-item ${coche ? 'coche' : ''}" onclick="toggleCheck('${id}', '${cle}', this)">
+          <div class="check-box">${coche ? '✓' : ''}</div>
+          <span class="check-texte">${echapper(item)}</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  // Contacts urgence
+  if ((evt.contacts || []).length > 0) {
+    html += `<div class="detail-section">
+      <div class="detail-section-titre">Contacts d'urgence</div>
+      ${evt.contacts.map(c => `<div class="contact-item">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--fond2);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;">
+          ${echapper(c.nom || '?')[0].toUpperCase()}
+        </div>
+        <div class="contact-info">
+          <div style="font-size:.88rem;font-weight:700;">${echapper(c.nom)}</div>
+          <div style="font-size:.75rem;color:var(--texte-2);">${echapper(c.tel || '')} ${c.role ? '· ' + c.role : ''}</div>
+        </div>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  // Notes importantes
+  if (evt.notes) {
+    html += `<div class="detail-section">
+      <div class="detail-section-titre">Notes importantes</div>
+      <div style="background:#fffde7;border-left:3px solid var(--or);padding:.8rem 1rem;border-radius:0 6px 6px 0;font-size:.88rem;line-height:1.7;">
+        ${echapper(evt.notes).replace(/\n/g,'<br>')}
+      </div>
+    </div>`;
+  }
+
+  document.getElementById('detail-corps').innerHTML = html;
+
+  // Actions
+  let actionsHtml = '';
+  if (etat.admin) {
+    actionsHtml += `<button class="btn-secondaire" onclick="ouvrirFormulaire('${id}');fermerOverlay('overlay-detail');">✏️ Modifier</button>`;
+    actionsHtml += `<button class="btn-danger" onclick="confirmerSuppression('${id}');fermerOverlay('overlay-detail');">🗑 Supprimer</button>`;
+  }
+  actionsHtml += `<button class="btn-primaire" onclick="exporterEvenement('${id}')">📄 Exporter</button>`;
+  document.getElementById('detail-actions').innerHTML = actionsHtml;
+
+  ouvrirOverlay('overlay-detail');
+}
+
+function champ(label, valeur) {
+  return `<div class="detail-champ">
+    <div class="detail-champ-label">${label}</div>
+    <div class="detail-champ-valeur">${valeur}</div>
+  </div>`;
+}
+
+function toggleCheck(evtId, cle, el) {
+  let checksEvt = {};
+  try { checksEvt = JSON.parse(localStorage.getItem(CLE_CHECKS + '_' + evtId) || '{}'); } catch(e) {}
+  checksEvt[cle] = !checksEvt[cle];
+  localStorage.setItem(CLE_CHECKS + '_' + evtId, JSON.stringify(checksEvt));
+  el.classList.toggle('coche', checksEvt[cle]);
+  el.querySelector('.check-box').textContent = checksEvt[cle] ? '✓' : '';
+  el.querySelector('.check-texte').style.textDecoration = checksEvt[cle] ? 'line-through' : '';
+}
+
+/* ============================================================
+   FORMULAIRE CRÉATION/ÉDITION
+============================================================ */
+function ouvrirFormulaire(id) {
+  let evt = null;
+  if (id) {
+    evt = etat.evenements.find(e => e.id === id);
+    etat.formEdition = id;
+  } else {
+    etat.formEdition = null;
+  }
+
+  document.getElementById('form-titre-modal').textContent = id ? 'Modifier l\'événement' : 'Nouvel événement';
+
+  // Initialiser les données temporaires du formulaire
+  etat.formChansons      = evt ? JSON.parse(JSON.stringify(evt.chansons || [])) : [];
+  etat.formLogistique    = evt ? JSON.parse(JSON.stringify(evt.logistique || [])) : [];
+  etat.formInscritsTransport = evt ? JSON.parse(JSON.stringify((evt.transport || {}).inscrits || [])) : [];
+  etat.formChecklist     = evt ? JSON.parse(JSON.stringify(evt.checklist || [])) : [];
+  etat.formContacts      = evt ? JSON.parse(JSON.stringify(evt.contacts || [])) : [];
+
+  const v = (key, def='') => evt ? (evt[key] || def) : def;
+  const vt = (key, def='') => evt && evt.transport ? (evt.transport[key] || def) : def;
+
+  document.getElementById('form-sections').innerHTML = `
+    <!-- INFOS GÉNÉRALES -->
+    <div class="form-section-bloc">
+      <div class="form-section-entete" onclick="toggleSection(this)">
+        <div class="form-section-titre">✦ Informations générales</div>
+        <span>▾</span>
+      </div>
+      <div class="form-section-corps">
+        <div class="form-grille">
+          <div class="form-groupe">
+            <label>Titre de l'événement</label>
+            <input type="text" id="f-titre" value="${echapper(v('titre'))}" placeholder="Ex : Messe de Noël 2025" />
+          </div>
+          <div class="form-groupe">
+            <label>Type d'événement *</label>
+            <select id="f-type">
+              <option value="">— Choisir —</option>
+              ${['Messe dominicale','Concert invité','Événement familial','Animation liturgique','Concert propre']
+                .map(t => `<option value="${t}" ${v('type')===t?'selected':''}>${t}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-groupe">
+            <label>Initiateur</label>
+            <input type="text" id="f-initiateur" value="${echapper(v('initiateur'))}" placeholder="Nom / organisation" />
+          </div>
+          <div class="form-groupe">
+            <label>Date *</label>
+            <input type="date" id="f-date" value="${v('date')}" />
+          </div>
+          <div class="form-groupe">
+            <label>Heure de début</label>
+            <input type="time" id="f-heure-debut" value="${v('heureDebut')}" />
+          </div>
+          <div class="form-groupe">
+            <label>Heure de fin</label>
+            <input type="time" id="f-heure-fin" value="${v('heureFin')}" />
+          </div>
+          <div class="form-groupe">
+            <label>Lieu</label>
+            <input type="text" id="f-lieu" value="${echapper(v('lieu'))}" placeholder="Adresse ou nom du lieu" />
+          </div>
+          <div class="form-groupe">
+            <label>Nombre de chants</label>
+            <input type="number" id="f-nb-chants" value="${v('nbChants')}" min="0" placeholder="0" />
+          </div>
+          <div class="form-groupe col-full">
+            <label>Description / Contexte</label>
+            <textarea id="f-description" rows="3" placeholder="Contexte et description de l'événement…">${v('description')}</textarea>
+          </div>
+          <div class="form-groupe col-full">
+            <label>Programme détaillé</label>
+            <textarea id="f-programme" rows="3" placeholder="Déroulé de l'événement…">${v('programme')}</textarea>
+          </div>
+          <div class="form-groupe col-full">
+            <label>Programme liturgique</label>
+            <textarea id="f-liturgie" rows="3" placeholder="Ordre de la liturgie (si applicable)…">${v('liturgie')}</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHANSONS -->
+    <div class="form-section-bloc">
+      <div class="form-section-entete" onclick="toggleSection(this)">
+        <div class="form-section-titre">🎵 Chansons</div>
+        <span>▾</span>
+      </div>
+      <div class="form-section-corps">
+        <div id="liste-form-chansons"></div>
+        <button type="button" class="btn-secondaire" onclick="ajouterChanson()" style="width:100%;margin-top:.5rem;">+ Ajouter une chanson</button>
+      </div>
+    </div>
+
+    <!-- TRANSPORT -->
+    <div class="form-section-bloc">
+      <div class="form-section-entete" onclick="toggleSection(this)">
+        <div class="form-section-titre">🚌 Transport</div>
+        <span>▾</span>
+      </div>
+      <div class="form-section-corps">
+        <div class="form-grille">
+          <div class="form-groupe">
+            <label>Responsable transport</label>
+            <input type="text" id="f-t-responsable" value="${echapper(vt('responsable'))}" placeholder="Nom du responsable" />
+          </div>
+          <div class="form-groupe">
+            <label>Contact (tél/email)</label>
+            <input type="text" id="f-t-contact" value="${echapper(vt('contact'))}" placeholder="+261 …" />
+          </div>
+          <div class="form-groupe">
+            <label>Places disponibles</label>
+            <input type="number" id="f-t-places" value="${vt('places')}" min="0" placeholder="0" />
+          </div>
+          <div class="form-groupe">
+            <label>Frais / personne (€)</label>
+            <input type="number" id="f-t-frais" value="${vt('frais')}" min="0" step="0.5" placeholder="0" />
+          </div>
+        </div>
+        <div class="transport-inscrits-section">
+          <label>Membres inscrits au transport</label>
+          <div id="liste-inscrits"></div>
+          <div class="ajouter-inscrit">
+            <input type="text" id="nouvel-inscrit" placeholder="Nom du membre" />
+            <button type="button" class="btn-secondaire" onclick="ajouterInscrit()">+ Ajouter</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOGISTIQUE -->
+    <div class="form-section-bloc">
+      <div class="form-section-entete" onclick="toggleSection(this)">
+        <div class="form-section-titre">📦 Logistique</div>
+        <span>▾</span>
+      </div>
+      <div class="form-section-corps">
+        <div id="liste-form-logistique"></div>
+        <button type="button" class="btn-secondaire" onclick="ajouterLogistique()" style="width:100%;margin-top:.5rem;">+ Ajouter un élément</button>
+      </div>
+    </div>
+
+    <!-- AUTRES -->
+    <div class="form-section-bloc">
+      <div class="form-section-entete" onclick="toggleSection(this)">
+        <div class="form-section-titre">📝 Autres éléments</div>
+        <span>▾</span>
+      </div>
+      <div class="form-section-corps">
+        <div class="form-groupe" style="margin-bottom:1rem;">
+          <label>Notes importantes</label>
+          <textarea id="f-notes" rows="3" placeholder="Informations importantes à retenir…">${v('notes')}</textarea>
+        </div>
+
+        <label style="display:block;margin-bottom:.6rem;">Checklist des préparatifs</label>
+        <div id="liste-form-checklist"></div>
+        <div style="display:flex;gap:.5rem;margin-top:.5rem;">
+          <input type="text" id="nouvel-check" placeholder="Élément à cocher…" onkeydown="if(event.key==='Enter'){ajouterCheck();event.preventDefault();}" />
+          <button type="button" class="btn-secondaire" onclick="ajouterCheck()">+ Ajouter</button>
+        </div>
+
+        <div style="margin-top:1.2rem;">
+          <label style="display:block;margin-bottom:.6rem;">Contacts d'urgence</label>
+          <div id="liste-form-contacts"></div>
+          <button type="button" class="btn-secondaire" onclick="ajouterContact()" style="width:100%;margin-top:.5rem;">+ Ajouter un contact</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  rendreFormChansons();
+  rendreFormLogistique();
+  rendreFormInscrits();
+  rendreFormChecklist();
+  rendreFormContacts();
+
+  ouvrirOverlay('overlay-form');
+}
+
+// ---- Sous-rendus formulaire ----
+function rendreFormChansons() {
+  document.getElementById('liste-form-chansons').innerHTML = etat.formChansons.map((c, i) => `
+    <div class="chanson-form-item">
+      <button type="button" class="btn-supprimer" onclick="supprimerChanson(${i})">✕</button>
+      <div class="form-grille-3">
+        <div class="form-groupe">
+          <label>Titre</label>
+          <input type="text" value="${echapper(c.titre||'')}" oninput="etat.formChansons[${i}].titre=this.value" placeholder="Titre de la chanson" />
+        </div>
+        <div class="form-groupe">
+          <label>Auteur</label>
+          <input type="text" value="${echapper(c.auteur||'')}" oninput="etat.formChansons[${i}].auteur=this.value" placeholder="Auteur / compositeur" />
+        </div>
+        <div class="form-groupe">
+          <label>Durée</label>
+          <input type="text" value="${echapper(c.duree||'')}" oninput="etat.formChansons[${i}].duree=this.value" placeholder="Ex : 3:45" />
+        </div>
+        <div class="form-groupe">
+          <label>Lien YouTube / Spotify</label>
+          <input type="url" value="${echapper(c.lien||'')}" oninput="etat.formChansons[${i}].lien=this.value" placeholder="https://…" />
+        </div>
+        <div class="form-groupe">
+          <label>Statut</label>
+          <select onchange="etat.formChansons[${i}].statut=this.value">
+            <option value="a-apprendre" ${(c.statut||'a-apprendre')==='a-apprendre'?'selected':''}>À apprendre</option>
+            <option value="apprise" ${c.statut==='apprise'?'selected':''}>Apprise</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  `).join('') || '<p style="font-size:.85rem;color:var(--texte-2);text-align:center;padding:.5rem;">Aucune chanson. Cliquez sur + pour en ajouter.</p>';
+}
+
+function ajouterChanson() {
+  etat.formChansons.push({ titre:'', auteur:'', duree:'', lien:'', statut:'a-apprendre' });
+  rendreFormChansons();
+}
+
+function supprimerChanson(i) {
+  etat.formChansons.splice(i, 1);
+  rendreFormChansons();
+}
+
+function rendreFormLogistique() {
+  document.getElementById('liste-form-logistique').innerHTML = etat.formLogistique.map((l, i) => `
+    <div class="logistique-form-item">
+      <button type="button" class="btn-supprimer" onclick="supprimerLogistique(${i})">✕</button>
+      <div class="form-grille">
+        <div class="form-groupe">
+          <label>Description</label>
+          <input type="text" value="${echapper(l.description||'')}" oninput="etat.formLogistique[${i}].description=this.value" placeholder="Ex : Sono, Partitions, Tenues…" />
+        </div>
+        <div class="form-groupe">
+          <label>Responsable</label>
+          <input type="text" value="${echapper(l.responsable||'')}" oninput="etat.formLogistique[${i}].responsable=this.value" placeholder="Nom du responsable" />
+        </div>
+        <div class="form-groupe">
+          <label>Statut</label>
+          <select onchange="etat.formLogistique[${i}].statut=this.value">
+            <option value="prepare" ${(l.statut||'prepare')==='prepare'?'selected':''}>Préparé</option>
+            <option value="en-cours" ${l.statut==='en-cours'?'selected':''}>En cours</option>
+            <option value="termine" ${l.statut==='termine'?'selected':''}>Terminé</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  `).join('') || '<p style="font-size:.85rem;color:var(--texte-2);text-align:center;padding:.5rem;">Aucun élément. Cliquez sur + pour en ajouter.</p>';
+}
+
+function ajouterLogistique() {
+  etat.formLogistique.push({ description:'', responsable:'', statut:'prepare' });
+  rendreFormLogistique();
+}
+
+function supprimerLogistique(i) {
+  etat.formLogistique.splice(i, 1);
+  rendreFormLogistique();
+}
+
+function rendreFormInscrits() {
+  document.getElementById('liste-inscrits').innerHTML = etat.formInscritsTransport.map((m, i) => `
+    <div class="inscrit-item">
+      <span>${echapper(m)}</span>
+      <button type="button" class="btn-danger" style="padding:.2rem .5rem;font-size:.72rem;" onclick="supprimerInscrit(${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+function ajouterInscrit() {
+  const val = document.getElementById('nouvel-inscrit').value.trim();
+  if (!val) return;
+  etat.formInscritsTransport.push(val);
+  document.getElementById('nouvel-inscrit').value = '';
+  rendreFormInscrits();
+}
+
+function supprimerInscrit(i) {
+  etat.formInscritsTransport.splice(i, 1);
+  rendreFormInscrits();
+}
+
+function rendreFormChecklist() {
+  document.getElementById('liste-form-checklist').innerHTML = etat.formChecklist.map((item, i) => `
+    <div class="inscrit-item">
+      <span style="font-size:.85rem;">${echapper(item)}</span>
+      <button type="button" class="btn-danger" style="padding:.2rem .5rem;font-size:.72rem;" onclick="supprimerCheck(${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+function ajouterCheck() {
+  const val = document.getElementById('nouvel-check').value.trim();
+  if (!val) return;
+  etat.formChecklist.push(val);
+  document.getElementById('nouvel-check').value = '';
+  rendreFormChecklist();
+}
+
+function supprimerCheck(i) {
+  etat.formChecklist.splice(i, 1);
+  rendreFormChecklist();
+}
+
+function rendreFormContacts() {
+  document.getElementById('liste-form-contacts').innerHTML = etat.formContacts.map((c, i) => `
+    <div class="logistique-form-item">
+      <button type="button" class="btn-supprimer" onclick="supprimerContact(${i})">✕</button>
+      <div class="form-grille">
+        <div class="form-groupe">
+          <label>Nom</label>
+          <input type="text" value="${echapper(c.nom||'')}" oninput="etat.formContacts[${i}].nom=this.value" placeholder="Nom complet" />
+        </div>
+        <div class="form-groupe">
+          <label>Téléphone</label>
+          <input type="tel" value="${echapper(c.tel||'')}" oninput="etat.formContacts[${i}].tel=this.value" placeholder="+261 …" />
+        </div>
+        <div class="form-groupe">
+          <label>Rôle</label>
+          <input type="text" value="${echapper(c.role||'')}" oninput="etat.formContacts[${i}].role=this.value" placeholder="Ex : Chef de chœur" />
+        </div>
+      </div>
+    </div>
+  `).join('') || '<p style="font-size:.85rem;color:var(--texte-2);text-align:center;padding:.5rem;">Aucun contact.</p>';
+}
+
+function ajouterContact() {
+  etat.formContacts.push({ nom:'', tel:'', role:'' });
+  rendreFormContacts();
+}
+
+function supprimerContact(i) {
+  etat.formContacts.splice(i, 1);
+  rendreFormContacts();
+}
+
+function toggleSection(header) {
+  const corps = header.nextElementSibling;
+  const indicateur = header.querySelector('span:last-child');
+  if (corps.style.display === 'none') {
+    corps.style.display = '';
+    indicateur.textContent = '▾';
+  } else {
+    corps.style.display = 'none';
+    indicateur.textContent = '▸';
+  }
+}
+
+/* ============================================================
+   SAUVEGARDE
+============================================================ */
+function sauvegarderEvenement() {
+  const type   = document.getElementById('f-type').value;
+  const date   = document.getElementById('f-date').value;
+
+  if (!type) { afficherNotif('Veuillez sélectionner un type d\'événement.', 'erreur'); return; }
+  if (!date) { afficherNotif('Veuillez sélectionner une date.', 'erreur'); return; }
+
+  const evt = {
+    id:          etat.formEdition || genId(),
+    titre:       document.getElementById('f-titre').value.trim(),
+    type,
+    initiateur:  document.getElementById('f-initiateur').value.trim(),
+    date,
+    heureDebut:  document.getElementById('f-heure-debut').value,
+    heureFin:    document.getElementById('f-heure-fin').value,
+    lieu:        document.getElementById('f-lieu').value.trim(),
+    nbChants:    document.getElementById('f-nb-chants').value,
+    description: document.getElementById('f-description').value.trim(),
+    programme:   document.getElementById('f-programme').value.trim(),
+    liturgie:    document.getElementById('f-liturgie').value.trim(),
+    notes:       document.getElementById('f-notes').value.trim(),
+    chansons:    etat.formChansons.filter(c => c.titre),
+    transport: {
+      responsable: document.getElementById('f-t-responsable').value.trim(),
+      contact:     document.getElementById('f-t-contact').value.trim(),
+      places:      document.getElementById('f-t-places').value,
+      frais:       document.getElementById('f-t-frais').value,
+      inscrits:    [...etat.formInscritsTransport],
+    },
+    logistique:  etat.formLogistique.filter(l => l.description),
+    checklist:   [...etat.formChecklist],
+    contacts:    etat.formContacts.filter(c => c.nom),
+    createdAt:   etat.formEdition ? undefined : new Date().toISOString(),
+  };
+
+  if (!evt.createdAt) {
+    const existant = etat.evenements.find(e => e.id === etat.formEdition);
+    if (existant) evt.createdAt = existant.createdAt;
+  }
+
+  if (etat.formEdition) {
+    const idx = etat.evenements.findIndex(e => e.id === etat.formEdition);
+    if (idx >= 0) etat.evenements[idx] = evt;
+    afficherNotif('Événement modifié avec succès ✓', 'succes');
+  } else {
+    etat.evenements.push(evt);
+    afficherNotif('Nouvel événement créé ✦', 'succes');
+  }
+
+  sauverDonnees();
+  fermerOverlay('overlay-form');
+  rendreToutesVues();
+  rendreAdmin();
+}
+
+function confirmerSuppression(id) {
+  const evt = etat.evenements.find(e => e.id === id);
+  if (!evt) return;
+  if (confirm(`Supprimer définitivement "${evt.titre || evt.type}" ?\nCette action est irréversible.`)) {
+    etat.evenements = etat.evenements.filter(e => e.id !== id);
+    sauverDonnees();
+    rendreToutesVues();
+    rendreAdmin();
+    afficherNotif('Événement supprimé.', 'erreur');
+  }
+}
+
+/* ============================================================
+   EXPORT
+============================================================ */
+function exporterEvenement(id) {
+  const evt = etat.evenements.find(e => e.id === id);
+  if (!evt) return;
+
+  const nomsMois = ['janvier','février','mars','avril','mai','juin',
+                    'juillet','août','septembre','octobre','novembre','décembre'];
+  const d = new Date(evt.date);
+  const dateStr = `${d.getDate()} ${nomsMois[d.getMonth()]} ${d.getFullYear()}`;
+
+  let txt = `CHORALE APL — ANTsam-PIDERAN'NY LANITRA\n`;
+  txt += `${'='.repeat(50)}\n\n`;
+  txt += `ÉVÉNEMENT : ${evt.titre || evt.type}\n`;
+  txt += `Type       : ${evt.type}\n`;
+  txt += `Date       : ${dateStr}${evt.heureDebut ? ' à ' + evt.heureDebut : ''}${evt.heureFin ? ' – ' + evt.heureFin : ''}\n`;
+  txt += `Lieu       : ${evt.lieu || '—'}\n`;
+  txt += `Initiateur : ${evt.initiateur || '—'}\n\n`;
+
+  if (evt.description) txt += `DESCRIPTION\n${'-'.repeat(30)}\n${evt.description}\n\n`;
+  if (evt.programme)   txt += `PROGRAMME\n${'-'.repeat(30)}\n${evt.programme}\n\n`;
+  if (evt.liturgie)    txt += `PROGRAMME LITURGIQUE\n${'-'.repeat(30)}\n${evt.liturgie}\n\n`;
+
+  if ((evt.chansons || []).length > 0) {
+    txt += `CHANSONS (${evt.chansons.length})\n${'-'.repeat(30)}\n`;
+    evt.chansons.forEach((c, i) => {
+      txt += `${i+1}. ${c.titre}${c.auteur ? ' — ' + c.auteur : ''}${c.duree ? ' (' + c.duree + ')' : ''} [${c.statut === 'apprise' ? 'Apprise' : 'À apprendre'}]\n`;
+      if (c.lien) txt += `   ▶ ${c.lien}\n`;
+    });
+    txt += '\n';
+  }
+
+  if (evt.transport && evt.transport.responsable) {
+    const t = evt.transport;
+    txt += `TRANSPORT\n${'-'.repeat(30)}\n`;
+    txt += `Responsable : ${t.responsable}\n`;
+    txt += `Contact     : ${t.contact || '—'}\n`;
+    txt += `Places      : ${t.places || '—'} · Frais : ${t.frais ? t.frais + ' €' : '—'}/pers\n`;
+    if ((t.inscrits || []).length > 0) txt += `Inscrits    : ${t.inscrits.join(', ')}\n`;
+    txt += '\n';
+  }
+
+  if ((evt.logistique || []).length > 0) {
+    txt += `LOGISTIQUE\n${'-'.repeat(30)}\n`;
+    evt.logistique.forEach(l => {
+      txt += `• ${l.description} (${l.responsable || '—'}) — ${l.statut}\n`;
+    });
+    txt += '\n';
+  }
+
+  if ((evt.checklist || []).length > 0) {
+    txt += `CHECKLIST\n${'-'.repeat(30)}\n`;
+    evt.checklist.forEach(item => { txt += `☐ ${item}\n`; });
+    txt += '\n';
+  }
+
+  if ((evt.contacts || []).length > 0) {
+    txt += `CONTACTS D'URGENCE\n${'-'.repeat(30)}\n`;
+    evt.contacts.forEach(c => { txt += `• ${c.nom}${c.tel ? ' — ' + c.tel : ''}${c.role ? ' (' + c.role + ')' : ''}\n`; });
+    txt += '\n';
+  }
+
+  if (evt.notes) txt += `NOTES\n${'-'.repeat(30)}\n${evt.notes}\n\n`;
+
+  txt += `${'='.repeat(50)}\nDocument généré le ${new Date().toLocaleDateString('fr-FR')}\n`;
+
+  const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `APL_${(evt.titre || evt.type).replace(/\s+/g,'_')}_${evt.date}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+  afficherNotif('Export téléchargé ✓', 'succes');
+}
+
+/* ============================================================
+   HELPERS
+============================================================ */
+function genId() {
+  return 'evt_' + Date.now() + '_' + Math.random().toString(36).substr(2,6);
+}
+
+function echapper(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+function formaterDate(dateStr) {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr);
+  if (isNaN(d)) return dateStr;
+  const nomsMois = ['jan.','fév.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+  return `${d.getDate()} ${nomsMois[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function estNouvel(evt) {
+  if (!evt.createdAt) return false;
+  return (Date.now() - new Date(evt.createdAt).getTime()) < 72 * 3600 * 1000;
+}
+
+function lienType(url) {
+  if (!url) return 'autre';
+  if (url.includes('youtube') || url.includes('youtu.be')) return 'youtube';
+  if (url.includes('spotify')) return 'spotify';
+  return 'autre';
+}
+
+function ouvrirOverlay(id) {
+  document.getElementById(id).classList.add('ouvert');
+  document.body.style.overflow = 'hidden';
+}
+
+function fermerOverlay(id, event) {
+  if (event && event.target !== document.getElementById(id)) return;
+  document.getElementById(id).classList.remove('ouvert');
+  document.body.style.overflow = '';
+}
+
+function afficherNotif(message, type='info') {
+  const cont = document.getElementById('notif-conteneur');
+  const el = document.createElement('div');
+  el.className = `notif ${type}`;
+  el.innerHTML = `<span>${type==='succes'?'✓':type==='erreur'?'✕':'ℹ'}</span> ${echapper(message)}`;
+  cont.appendChild(el);
+  setTimeout(() => { el.style.opacity='0'; el.style.transition='opacity .4s'; setTimeout(()=>el.remove(),400); }, 3500);
+}
+
+/* ============================================================
+   DONNÉES EXEMPLE (si vide)
+============================================================ */
+function chargerDonneesExemple() {
+  if (etat.evenements.length > 0) return;
+  const maintenant = new Date();
+  const fmt = (d) => d.toISOString().split('T')[0];
+  const futur1 = new Date(maintenant); futur1.setDate(futur1.getDate() + 12);
+  const futur2 = new Date(maintenant); futur2.setDate(futur2.getDate() + 28);
+  const passe1  = new Date(maintenant); passe1.setDate(passe1.getDate() - 15);
+
+  etat.evenements = [
+    {
+      id: genId(),
+      titre: 'Messe du dimanche — Pentecôte',
+      type: 'Messe dominicale',
+      initiateur: 'Père Jean-Baptiste',
+      date: fmt(futur1),
+      heureDebut: '09:00',
+      heureFin: '11:00',
+      lieu: 'Paroisse Saint-Pierre, Antananarivo',
+      nbChants: 8,
+      description: 'Animation de la messe dominicale pour la fête de la Pentecôte. Présence de toute la communauté attendue.',
+      programme: '1. Chant d\'entrée\n2. Kyrie\n3. Gloria\n4. Psaume responsorial\n5. Alléluia\n6. Offertoire\n7. Sanctus & Agnus Dei\n8. Chant final',
+      liturgie: 'Temps ordinaire — Couleur rouge\nLectures : Actes 2, 1-11 / Romains 8 / Jean 20',
+      chansons: [
+        { titre: 'Viens Esprit Saint', auteur: 'Taizé', duree: '3:20', lien: 'https://www.youtube.com/watch?v=example1', statut: 'apprise' },
+        { titre: 'Alléluia de Haendel', auteur: 'G.F. Haendel', duree: '4:10', lien: '', statut: 'apprise' },
+        { titre: 'Psaume 104', auteur: 'APL', duree: '2:45', lien: '', statut: 'a-apprendre' },
+      ],
+      transport: {
+        responsable: 'Frère Rakoto', contact: '+261 34 12 345 67', places: '15', frais: '0',
+        inscrits: ['Marie Rasoa', 'Jean Rabe', 'Claire Voahangy', 'Paul Andry'],
+      },
+      logistique: [
+        { description: 'Sono et micros', responsable: 'Technicien Hery', statut: 'prepare' },
+        { description: 'Partitions imprimées', responsable: 'Sœur Nathalie', statut: 'en-cours' },
+        { description: 'Tenues de chœur', responsable: 'Responsable tenues', statut: 'prepare' },
+      ],
+      checklist: ['Confirmer les lectures', 'Répétition jeudi soir', 'Vérifier le micro soliste', 'Partitions distribuées'],
+      contacts: [
+        { nom: 'Chef de chœur Rakotoarison', tel: '+261 34 00 11 22', role: 'Chef de chœur' },
+        { nom: 'Père Jean-Baptiste', tel: '+261 20 22 33 44', role: 'Curé de la paroisse' },
+      ],
+      notes: 'Répétition générale le jeudi à 19h. Présence obligatoire pour tous les membres. Tenues blanches.',
+      createdAt: new Date(Date.now() - 1000*3600*2).toISOString(),
+    },
+    {
+      id: genId(),
+      titre: 'Concert de Noël — APL 2025',
+      type: 'Concert propre',
+      initiateur: 'Bureau APL',
+      date: fmt(futur2),
+      heureDebut: '18:00',
+      heureFin: '21:00',
+      lieu: 'Salle Omnisports Mahamasina, Antananarivo',
+      nbChants: 15,
+      description: 'Grand concert annuel de la chorale APL pour célébrer la naissance du Christ.',
+      programme: 'Première partie : Chants traditionnels malgaches\nDeuxième partie : Chants classiques\nTroisième partie : Chants modernes',
+      liturgie: '',
+      chansons: [
+        { titre: 'Douce nuit', auteur: 'Franz Gruber', duree: '3:45', lien: '', statut: 'apprise' },
+        { titre: 'Minuit Chrétiens', auteur: 'Adolphe Adam', duree: '5:00', lien: '', statut: 'apprise' },
+        { titre: 'Gloria in Excelsis', auteur: 'APL', duree: '4:30', lien: '', statut: 'a-apprendre' },
+        { titre: 'O Holy Night', auteur: 'Adolphe Adam', duree: '4:20', lien: 'https://youtu.be/example2', statut: 'a-apprendre' },
+      ],
+      transport: {
+        responsable: 'Coordinatrice Voahangy', contact: '+261 32 55 66 77', places: '30', frais: '2000',
+        inscrits: ['Groupe famille Nord', 'Groupe famille Sud'],
+      },
+      logistique: [
+        { description: 'Location salle', responsable: 'Bureau APL', statut: 'prepare' },
+        { description: 'Sono professionnelle', responsable: 'Prestataire TechSound', statut: 'en-cours' },
+        { description: 'Affiches et flyers', responsable: 'Graphiste Fanja', statut: 'prepare' },
+        { description: 'Buffet après concert', responsable: 'Équipe cuisine', statut: 'prepare' },
+      ],
+      checklist: ['Réserver la salle', 'Contacter le prestataire sono', '3 répétitions avant le concert', 'Imprimer les programmes', 'Inviter les autorités'],
+      contacts: [
+        { nom: 'Présidente APL', tel: '+261 34 99 88 77', role: 'Présidente' },
+        { nom: 'Régisseur salle', tel: '+261 20 22 00 11', role: 'Régisseur' },
+      ],
+      notes: '⚠ Tenues de gala obligatoires : robes dorées pour les femmes, costumes noirs pour les hommes.',
+      createdAt: new Date(Date.now() - 1000*3600*24).toISOString(),
+    },
+    {
+      id: genId(),
+      titre: 'Mariage Razafindrakoto',
+      type: 'Événement familial',
+      initiateur: 'Famille Razafindrakoto',
+      date: fmt(passe1),
+      heureDebut: '10:00',
+      heureFin: '15:00',
+      lieu: 'Cathédrale de l\'Immaculée Conception',
+      nbChants: 6,
+      description: 'Animation musicale du mariage de Jean et Marie.',
+      programme: 'Entrée de la mariée, échanges des vœux, communion, sortie',
+      liturgie: 'Rite du mariage',
+      chansons: [
+        { titre: 'Ave Maria', auteur: 'Schubert', duree: '4:15', lien: '', statut: 'apprise' },
+        { titre: 'Panis Angelicus', auteur: 'César Franck', duree: '3:50', lien: '', statut: 'apprise' },
+      ],
+      transport: { responsable: '', contact: '', places: '', frais: '', inscrits: [] },
+      logistique: [
+        { description: 'Partitions', responsable: 'Chantre principal', statut: 'termine' },
+      ],
+      checklist: ['Répétition avec les époux', 'Confirmation du programme'],
+      contacts: [],
+      notes: '',
+      createdAt: new Date(Date.now() - 1000*3600*48*20).toISOString(),
+    },
+  ];
+  sauverDonnees();
+}
+
+/* ============================================================
+   INITIALISATION
+============================================================ */
+window.onload = function() {
+  // Focus sur le champ mdp
+  document.getElementById('mdp-input').focus();
+};
+
+// Surcharge de chargerDonnees pour charger l'exemple si vide
+const _chargerDonnees = chargerDonnees;
+function chargerDonnees() {
+  _chargerDonnees();
+  chargerDonneesExemple();
+}
+</script>
+</body>
+</html>
